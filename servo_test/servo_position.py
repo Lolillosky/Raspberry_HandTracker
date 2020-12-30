@@ -4,30 +4,70 @@
 import RPi.GPIO as GPIO
 import time
 
+def single_motor_demo():
 
-def set_servo_angle(angle, servo_pin):
+    # setup the GPIO pin for the servo
+    servo_pin = 13
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(servo_pin,GPIO.OUT)
 
+    # setup PWM process
+    pwm = GPIO.PWM(servo_pin,50) # 50 Hz (20 ms PWM period)
 
-    GPIO.setmode(GPIO.BOARD)
+    pwm.start(7) # start PWM by rotating to 90 degrees
 
-    GPIO.setup(servo_pin, GPIO.OUT)
+    for ii in range(0,3):
+        pwm.ChangeDutyCycle(2.0) # rotate to 0 degrees
+        time.sleep(0.5)
+        pwm.ChangeDutyCycle(12.0) # rotate to 180 degrees
+        time.sleep(0.5)
+        pwm.ChangeDutyCycle(7.0) # rotate to 90 degrees
+        time.sleep(0.5)
 
-    pwm=GPIO.PWM(servo_pin, 50)
+    pwm.ChangeDutyCycle(0) # this prevents jitter
+    pwm.stop() # stops the pwm on 13
+    GPIO.cleanup() # good practice when finished using a pin
 
-    pwm.start(1.5)
+def start_servo(servo_pin):
 
-    time.sleep(3)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(servo_pin,GPIO.OUT)
 
-    pwm.ChangeDutyCycle(5)
+    # setup PWM process
+    pwm = GPIO.PWM(servo_pin,50) # 50 Hz (20 ms PWM period)
+
+    pwm.start(7) # start PWM by rotating to 90 degrees
     time.sleep(0.5)
+    #pwm.ChangeDutyCycle(0)
+    #pwm.stop() # stops the pwm on 13
+
+    return pwm
 
 
+def set_angle(pwm, angle):
 
-    pwm.stop()
+    if (angle >= 0) and (angle <= 180):
+    
+        dutycycle = 2.0 + angle / 18
+        print(dutycycle)
+        pwm.ChangeDutyCycle(dutycycle)
+        time.sleep(0.3) 
+        #pwm.ChangeDutyCycle(0)
 
-    GPIO.cleanup()
+
+#single_motor_demo()
+
+pwm = start_servo(13)
+
+for i in range(5):
+    for ang in range(0,190,10):
+        set_angle(pwm, ang)
+
+set_angle(pwm, 90)
 
 
+pwm.ChangeDutyCycle(0) # this prevents jitter
+pwm.stop() # stops the pwm on 13
 
-set_servo_angle(0, 3)
+GPIO.cleanup()
 
